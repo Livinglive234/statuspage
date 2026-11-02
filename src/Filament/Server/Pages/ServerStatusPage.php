@@ -82,6 +82,11 @@ class ServerStatusPage extends Page
                     ->description('Choose what visitors see on your public status page. Changes save automatically. "Use default" follows the panel-wide setting.')
                     ->schema([
                         ...VisibilityFields::make(autoSave: true),
+                        Toggle::make('proxy_protocol')
+                            ->label('Server is behind a proxy (PROXY protocol)')
+                            ->helperText('Turn on if this server sits behind a proxy such as Velocity with haproxy-protocol enabled. Leave off for normal servers. If the page shows Offline while the server is up, try switching this.')
+                            ->live()
+                            ->afterStateUpdated(fn ($livewire) => $livewire->save()),
                         Toggle::make('enabled')
                             ->label('Status page enabled')
                             ->helperText('Turn off to make the page return "not found".')
@@ -129,9 +134,9 @@ class ServerStatusPage extends Page
 
         $data = $this->form->getState();
 
-        // Owners can only change visibility and the enabled switch, never the subdomain or ports.
+        // Owners can only change visibility, the proxy and enabled switches, never the subdomain or ports.
         $entry->update(collect($data)->only([
-            'show_version', 'show_players', 'show_player_names', 'show_motd', 'show_plugins', 'enabled',
+            'show_version', 'show_players', 'show_player_names', 'show_motd', 'show_plugins', 'proxy_protocol', 'enabled',
         ])->all());
 
         Notification::make()->title('Status page saved')->success()->send();

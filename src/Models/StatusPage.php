@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool|null $show_player_names
  * @property bool|null $show_motd
  * @property bool|null $show_plugins
+ * @property bool $proxy_protocol
  * @property bool $enabled
  */
 class StatusPage extends Model
@@ -30,6 +31,7 @@ class StatusPage extends Model
         'show_player_names',
         'show_motd',
         'show_plugins',
+        'proxy_protocol',
         'enabled',
     ];
 
@@ -43,6 +45,7 @@ class StatusPage extends Model
             'show_player_names' => 'boolean',
             'show_motd' => 'boolean',
             'show_plugins' => 'boolean',
+            'proxy_protocol' => 'boolean',
             'enabled' => 'boolean',
         ];
     }

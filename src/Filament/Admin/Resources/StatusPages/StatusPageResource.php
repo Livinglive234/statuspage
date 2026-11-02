@@ -63,6 +63,10 @@ class StatusPageResource extends Resource
                 ->minValue(1)
                 ->maxValue(65535)
                 ->helperText('Leave empty to use the primary allocation port.'),
+            Toggle::make('proxy_protocol')
+                ->label('Server uses PROXY protocol')
+                ->helperText('Turn on for servers that require the HAProxy/PROXY protocol header, such as Velocity with haproxy-protocol enabled. Leave off for normal servers.')
+                ->default(false),
             Section::make('What the page shows')
                 ->description('Defaults come from the plugin settings. The server owner can change these too.')
                 ->schema(VisibilityFields::make())

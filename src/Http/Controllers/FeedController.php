@@ -40,6 +40,7 @@ class FeedController
                 'node' => $server->node?->name,
                 'port' => (int) $server->allocation->port,
                 'query_port' => $entry->query_port,
+                'proxy_protocol' => (bool) $entry->proxy_protocol,
                 'show' => $entry->resolvedVisibility(),
             ];
         })->filter()->values();
