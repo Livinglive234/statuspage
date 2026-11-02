@@ -2,12 +2,12 @@
     "id": "statuspage",
     "name": "Status Pages",
     "author": "LiveNet",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "description": "Maps servers to public status-page subdomains and exposes a token-protected feed for an external status service.",
     "category": "plugin",
     "namespace": "LiveNet\\StatusPage",
     "class": "StatusPagePlugin",
     "panels": ["admin", "server"],
-    "update_url": "https://raw.githubusercontent.com/Livinglive234/statuspage/main/update.json",
+    "update_url": "https://hub.pelican.dev/plugins/statuspage/update.json",
     "api_version": 1
 }
