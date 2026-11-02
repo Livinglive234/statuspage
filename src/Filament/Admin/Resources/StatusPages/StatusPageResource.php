@@ -51,13 +51,12 @@ class StatusPageResource extends Resource
                 ->required()
                 ->unique(ignoreRecord: true),
             TextInput::make('subdomain')
-                ->required()
                 ->maxLength(63)
                 ->regex('/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/')
                 ->notIn(config('statuspage.reserved', []))
                 ->unique(ignoreRecord: true)
                 ->suffix('.' . config('statuspage.domain', 'livenet.host'))
-                ->helperText('Lowercase letters, numbers and hyphens only.'),
+                ->helperText('Optional extra address. Servers with a subdomain from the Subdomains plugin get a status page automatically; leave this empty to use only those. Lowercase letters, numbers and hyphens only.'),
             TextInput::make('query_port')
                 ->numeric()
                 ->minValue(1)
@@ -85,8 +84,8 @@ class StatusPageResource extends Resource
                     ->searchable(),
                 TextColumn::make('subdomain')
                     ->searchable()
-                    ->formatStateUsing(fn (string $state) => $state . '.' . config('statuspage.domain', 'livenet.host'))
-                    ->url(fn (StatusPage $record) => 'https://' . $record->subdomain . '.' . config('statuspage.domain', 'livenet.host'))
+                    ->formatStateUsing(fn (?string $state) => $state ? $state . '.' . config('statuspage.domain', 'livenet.host') : '—')
+                    ->url(fn (StatusPage $record) => $record->subdomain ? 'https://' . $record->subdomain . '.' . config('statuspage.domain', 'livenet.host') : null)
                     ->openUrlInNewTab(),
                 IconColumn::make('enabled')->boolean(),
             ])

@@ -15,6 +15,7 @@ use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use LiveNet\StatusPage\Filament\Components\VisibilityFields;
 use LiveNet\StatusPage\Models\StatusPage;
+use LiveNet\StatusPage\Support\Hostnames;
 
 class ServerStatusPage extends Page
 {
@@ -36,11 +37,20 @@ class ServerStatusPage extends Page
         return $tenant instanceof Server ? $tenant : null;
     }
 
-    private static function entry(): ?StatusPage
+    /** @return array<int, string> public addresses of the current server */
+    private static function hostnames(): array
     {
         $server = self::currentServer();
 
-        return $server ? StatusPage::query()->where('server_id', $server->id)->first() : null;
+        return $server ? (Hostnames::all($server->id)[$server->id] ?? []) : [];
+    }
+
+    // Settings are created on first save; until then the server uses the panel-wide defaults.
+    private static function entryOrNew(): ?StatusPage
+    {
+        $server = self::currentServer();
+
+        return $server ? StatusPage::firstOrNew(['server_id' => $server->id], ['enabled' => true]) : null;
     }
 
     private static function isAdmin(): bool
@@ -58,15 +68,15 @@ class ServerStatusPage extends Page
         return $user && $server && (int) $server->owner_id === (int) $user->id;
     }
 
-    // Admins always see the page. Owners only see it once an admin has given the server a subdomain.
+    // Admins always see the page. Owners see it once the server has a public address.
     public static function canAccess(): bool
     {
-        return self::isAdmin() || (self::isOwner() && self::entry() !== null);
+        return self::isAdmin() || (self::isOwner() && self::hostnames() !== []);
     }
 
     public function mount(): void
     {
-        $entry = self::entry();
+        $entry = self::entryOrNew();
 
         if ($entry) {
             $this->form->fill($entry->attributesToArray());
@@ -99,26 +109,23 @@ class ServerStatusPage extends Page
 
     public function content(Schema $schema): Schema
     {
-        $entry = self::entry();
+        $hostnames = self::hostnames();
 
-        if (!$entry) {
+        if ($hostnames === []) {
             return $schema->components([
                 Section::make('No status page yet')
                     ->schema([
-                        Text::make('This server has no subdomain. Add it under Status Pages in the admin panel to create its status page.'),
+                        Text::make('This server has no public address yet. Create a subdomain for it, or ask an admin to add one, and its status page appears automatically.'),
                     ]),
             ]);
         }
 
-        $url = 'https://' . $entry->subdomain . '.' . config('statuspage.domain', 'livenet.host');
-
         return $schema->components([
-            Section::make('Your status page')
+            Section::make(count($hostnames) > 1 ? 'Your status pages' : 'Your status page')
                 ->schema([
-                    TextEntry::make('status_url')
-                        ->label('Address')
-                        ->state($url)
-                        ->url($url, true)
+                    TextEntry::make('status_urls')
+                        ->label(count($hostnames) > 1 ? 'Addresses' : 'Address')
+                        ->state(implode(', ', $hostnames))
                         ->copyable(),
                 ]),
             EmbeddedSchema::make('form'),
@@ -127,17 +134,19 @@ class ServerStatusPage extends Page
 
     public function save(): void
     {
-        abort_unless(self::isAdmin() || self::isOwner(), 403);
+        $server = self::currentServer();
 
-        $entry = self::entry();
-        abort_unless($entry !== null, 404);
+        abort_unless($server !== null, 404);
+        abort_unless(self::isAdmin() || (self::isOwner() && self::hostnames() !== []), 403);
 
         $data = $this->form->getState();
 
         // Owners can only change visibility, the proxy and enabled switches, never the subdomain or ports.
-        $entry->update(collect($data)->only([
+        $entry = StatusPage::firstOrNew(['server_id' => $server->id]);
+        $entry->fill(collect($data)->only([
             'show_version', 'show_players', 'show_player_names', 'show_motd', 'show_plugins', 'proxy_protocol', 'enabled',
         ])->all());
+        $entry->save();
 
         Notification::make()->title('Status page saved')->success()->send();
     }

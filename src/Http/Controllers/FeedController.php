@@ -2,9 +2,11 @@
 
 namespace LiveNet\StatusPage\Http\Controllers;
 
+use App\Models\Server;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use LiveNet\StatusPage\Models\StatusPage;
+use LiveNet\StatusPage\Support\Hostnames;
 
 class FeedController
 {
@@ -21,21 +23,29 @@ class FeedController
             return response()->json(['error' => 'unauthorized'], 401);
         }
 
-        $entries = StatusPage::query()
-            ->where('enabled', true)
-            ->with(['server.allocation', 'server.node'])
-            ->get();
+        $hostnames = Hostnames::all();
+        $serverIds = array_keys($hostnames);
 
-        $servers = $entries->map(function (StatusPage $entry) {
-            $server = $entry->server;
+        $servers = Server::query()->whereIn('id', $serverIds)->with(['allocation', 'node'])->get()->keyBy('id');
+        $entries = StatusPage::query()->whereIn('server_id', $serverIds)->get()->keyBy('server_id');
+
+        $result = collect($serverIds)->map(function (int $id) use ($hostnames, $servers, $entries) {
+            $server = $servers->get($id);
 
             if (!$server || !$server->allocation) {
                 return null;
             }
 
-            // Deliberately no IPs, owners, emails, UUIDs or tokens.
+            // A server without saved settings uses the defaults and is enabled.
+            $entry = $entries->get($id) ?? new StatusPage(['enabled' => true]);
+
+            if (!$entry->enabled) {
+                return null;
+            }
+
+            // Deliberately no IPs, owners, emails, UUIDs, tokens or server names.
             return [
-                'subdomain' => $entry->subdomain,
+                'hostnames' => $hostnames[$id],
                 'node' => $server->node?->name,
                 'port' => (int) $server->allocation->port,
                 'query_port' => $entry->query_port,
@@ -45,7 +55,7 @@ class FeedController
         })->filter()->values();
 
         return response()
-            ->json(['servers' => $servers])
+            ->json(['servers' => $result])
             ->header('Cache-Control', 'no-store');
     }
 }

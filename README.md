@@ -8,26 +8,28 @@ This plugin manages which servers have a status page, what each page is allowed 
 
 1. Open **Settings** on this plugin, click the refresh icon to generate a token, then save. This writes `STATUSPAGE_TOKEN` to `.env` and clears the config cache.
 2. In the same Settings screen, choose what status pages show **by default**: version, player count, player names, MOTD and plugin list.
-3. Open **Status Pages** in the admin sidebar and add an entry for each server by giving it a subdomain.
+3. Give servers a public address. If the **Subdomains** plugin is installed and enabled, every server with a subdomain created there gets a status page automatically, and renaming the subdomain updates the page with no extra step. You can also add a manual entry under **Status Pages** in the admin sidebar to give a server an extra address (or an address when Subdomains isn't installed).
 4. Give the same token to your status service.
 
 If no token is set, the feed is disabled and returns 503.
 
 ## Who can change what
 
-- **Admins** create entries, set the subdomain and query port, and can change everything.
-- **Server owners** get a **Status Page** item in their server's sidebar once an admin has given the server a subdomain. There they can see their page's address, turn the page on or off, and choose Show, Hide or Use default for each aspect, and say whether the server is behind a proxy that needs the PROXY protocol header. Changes save automatically. Admins always see this item.
+- **Admins** can add manual entries, set the query port, and change everything.
+- **Server owners** get a **Status Page** item in their server's sidebar once the server has a public address. There they can see their page's address, turn the page on or off, and choose Show, Hide or Use default for each aspect, and say whether the server is behind a proxy that needs the PROXY protocol header. Changes save automatically. Admins always see this item.
 
 ## Status Pages entries
 
 | Field | Meaning |
 |---|---|
 | Server | The server to publish. One entry per server. |
-| Subdomain | Lowercase letters, numbers and hyphens. Must be unique and not reserved (www, panel, api, mail, ssh and similar). |
+| Subdomain | Optional. An extra address under your base domain. Lowercase letters, numbers and hyphens. Must be unique and not reserved (www, panel, api, mail, ssh and similar). |
 | Query port | Query port of the server. Empty means the primary allocation port. |
 | Server uses PROXY protocol | For proxies like Velocity with `haproxy-protocol` enabled, which reject connections without the header. Leave off for normal servers. Owners can also change this on their server's Status Page. |
 | What the page shows | Per aspect: Use default, Show or Hide. "Use default" follows the plugin Settings. |
 | Enabled | Turn the page off without deleting the entry. |
+
+Servers with a Subdomains-plugin address need no entry. Their settings are created the first time an owner or admin saves them, and until then they use the defaults.
 
 Deleting a server removes its entry automatically.
 
@@ -41,7 +43,7 @@ Header: `Authorization: Bearer <token>`
 {
   "servers": [
     {
-      "subdomain": "survival",
+      "hostnames": ["survival.example.com"],
       "node": "wing1",
       "port": 25565,
       "query_port": null,
@@ -58,6 +60,7 @@ Header: `Authorization: Bearer <token>`
 }
 ```
 
+- `hostnames` are the public addresses of the server (manual subdomain plus Subdomains-plugin addresses under the configured base domain). One server can have several.
 - `port` is the server's primary allocation port.
 - `node` is the name of the node the server runs on.
 - `proxy_protocol` is `true` when the server needs a PROXY protocol v2 header before the normal handshake; a status service must send one, or the server will drop the connection. Query is generally not available on such servers.
