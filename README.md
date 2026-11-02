@@ -1,5 +1,11 @@
 # Status Pages
 
+> ## ⚠️ This plugin does not work on its own
+>
+> Installing the plugin only adds the settings and a token-protected feed inside your panel. **The public status pages are served by a separate status service that you must install and run yourself**, with a reverse proxy, a wildcard DNS record and a wildcard HTTPS certificate in front of it.
+>
+> Without that extra setup, nobody can see a status page. Follow the [status service README](https://github.com/Livinglive234/statuspage/blob/main/status-service/README.md) after installing the plugin.
+
 Give each Minecraft server an optional public status page, with online state, version, players and (optionally) plugins.
 
 This plugin manages which servers have a status page, what each page is allowed to show, and a token-protected feed with that information. A separate status service reads the feed and builds the public pages.
