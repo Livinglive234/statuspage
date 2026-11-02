@@ -2,7 +2,7 @@
     "id": "statuspage",
     "name": "Status Pages",
     "author": "LiveNet",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Maps servers to public status-page subdomains and exposes a token-protected feed for an external status service.",
     "category": "plugin",
     "namespace": "LiveNet\\StatusPage",

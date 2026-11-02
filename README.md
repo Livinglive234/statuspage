@@ -43,6 +43,7 @@ Header: `Authorization: Bearer <token>`
 
 ```json
 {
+  "app_name": "My Hosting",
   "servers": [
     {
       "hostnames": ["survival.example.com"],
@@ -63,6 +64,7 @@ Header: `Authorization: Bearer <token>`
 ```
 
 - `hostnames` are the public addresses of the server (manual subdomain plus Subdomains-plugin addresses under the configured base domain). One server can have several.
+- `app_name` is the panel's App Name, which the status service shows in its page footer.
 - `port` is the server's primary allocation port.
 - `node` is the name of the node the server runs on.
 - `proxy_protocol` is `true` when the server needs a PROXY protocol v2 header before the normal handshake; a status service must send one, or the server will drop the connection. Query is generally not available on such servers.

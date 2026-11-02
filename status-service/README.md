@@ -120,4 +120,4 @@ Expect `HTTP/2 200` (or `HTTP/1.1 200`). A hostname with no status page returns 
 - **Player names and plugins** need `enable-query=true` on the Minecraft server.
 - **Offline everywhere?** Check that `nodes` maps each node name and that this machine can reach the server ports.
 - **Security:** the service never shows IPs, owners or tokens, escapes everything it displays, and sends strict CSP headers. Keep `listen_host` on `127.0.0.1` so only your reverse proxy can reach it.
-- **Branding:** the page footer and 404 page currently say "LiveNet". Edit `statusd.py` if you want your own.
+- **Branding:** the page footer shows your panel's App Name (Admin > Settings). This needs plugin v1.0.5 or newer; with an older plugin it shows your domain instead.

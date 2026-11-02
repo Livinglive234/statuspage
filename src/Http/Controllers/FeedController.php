@@ -55,7 +55,7 @@ class FeedController
         })->filter()->values();
 
         return response()
-            ->json(['servers' => $result])
+            ->json(['app_name' => (string) config('app.name'), 'servers' => $result])
             ->header('Cache-Control', 'no-store');
     }
 }

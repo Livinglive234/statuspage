@@ -28,7 +28,7 @@ def load_config():
         cfg = json.load(f)
     cfg.setdefault("listen_host", "127.0.0.1")
     cfg.setdefault("listen_port", 8081)
-    cfg.setdefault("domain", "livenet.host")
+    cfg.setdefault("domain", "example.com")
     cfg.setdefault("feed_ttl", 30)
     cfg.setdefault("status_ttl", 15)
     cfg.setdefault("timeout", 3)
@@ -47,6 +47,7 @@ class Feed:
         self.lock = threading.Lock()
         self.fetched = 0.0
         self.servers = {}
+        self.app_name = ""
 
     def get(self, hostname):
         now = time.time()
@@ -75,6 +76,7 @@ class Feed:
                 for name in names:
                     servers[str(name).lower()] = s
             self.servers = servers
+            self.app_name = str(data.get("app_name") or "")[:100]
             self.fetched = time.time()
         except Exception as e:  # keep serving the last good list
             log.warning("feed refresh failed: %s", e)
@@ -329,7 +331,7 @@ footer{{text-align:center;color:var(--mute);font-size:.8rem;margin-top:8px}}
 footer a{{color:var(--accent);text-decoration:none}}
 </style></head><body><main>
 {body}
-<footer>Hosted by <a href="https://{domain}">LiveNet</a> &middot; refreshes every 30 seconds</footer>
+<footer>Hosted by <a href="https://{domain}">{site}</a> &middot; refreshes every 30 seconds</footer>
 </main></body></html>"""
 
 # Generic placeholder for servers without an icon: a small server-rack glyph in the accent color.
@@ -347,7 +349,7 @@ PLACEHOLDER_ICON = (
 
 FAVICON = re.compile(r"^data:image/png;base64,[A-Za-z0-9+/=]+$")
 
-def render(entry, st, hostname, domain):
+def render(entry, st, hostname, domain, site):
     show = entry.get("show", {})
     # The page is headed by its public address, not the panel's server name
     name = html.escape(hostname)
@@ -384,11 +386,12 @@ def render(entry, st, hostname, domain):
     if st["online"] and show.get("plugins") and st.get("plugins"):
         chips = "".join(f'<span class="chip">{html.escape(p)}</span>' for p in st["plugins"][:200])
         body.append(f'<div class="card"><h2>Plugins ({len(st["plugins"])})</h2><div class="chips">{chips}</div></div>')
-    return PAGE.format(title=f"{name} &middot; Status", body="\n".join(body), domain=html.escape(domain)).encode()
+    return PAGE.format(title=f"{name} &middot; Status", body="\n".join(body), domain=html.escape(domain), site=html.escape(site)).encode()
 
-NOT_FOUND = PAGE.format(title="Not found", domain="livenet.host", body=(
+def not_found(domain, site):
+  return PAGE.format(title="Not found", domain=html.escape(domain), site=html.escape(site), body=(
     '<div class="card"><h1>Page not found</h1><p style="color:var(--mute)">There is no status page at this address.</p></div>'
-)).encode()
+  )).encode()
 
 # ---------------------------------------------------------------- http
 
@@ -425,13 +428,14 @@ def make_handler(cfg, feed, checker):
                 return self._send(200, b"ok", "text/plain")
             host = (self.headers.get("Host") or "").split(":")[0].lower()
             if len(host) > 253 or not HOST.match(host):
-                return self._send(404, NOT_FOUND)
+                return self._send(404, not_found(cfg["domain"], feed.app_name or cfg["domain"]))
             entry = feed.get(host)
+            site = feed.app_name or cfg["domain"]
             if not entry:
-                return self._send(404, NOT_FOUND)
+                return self._send(404, not_found(cfg["domain"], site))
             try:
                 st = checker.check(entry, host)
-                self._send(200, render(entry, st, host, cfg["domain"]))
+                self._send(200, render(entry, st, host, cfg["domain"], site))
             except Exception:
                 log.exception("render failed for %s", host)
                 self._send(500, b"error", "text/plain")
