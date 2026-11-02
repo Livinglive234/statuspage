@@ -331,7 +331,7 @@ footer{{text-align:center;color:var(--mute);font-size:.8rem;margin-top:8px}}
 footer a{{color:var(--accent);text-decoration:none}}
 </style></head><body><main>
 {body}
-<footer>Hosted by <a href="https://{domain}">{site}</a> &middot; refreshes every 30 seconds</footer>
+<footer>Hosted by <a href="{link}">{site}</a> &middot; refreshes every 30 seconds</footer>
 </main></body></html>"""
 
 # Generic placeholder for servers without an icon: a small server-rack glyph in the accent color.
@@ -349,7 +349,7 @@ PLACEHOLDER_ICON = (
 
 FAVICON = re.compile(r"^data:image/png;base64,[A-Za-z0-9+/=]+$")
 
-def render(entry, st, hostname, domain, site):
+def render(entry, st, hostname, link, site):
     show = entry.get("show", {})
     # The page is headed by its public address, not the panel's server name
     name = html.escape(hostname)
@@ -386,10 +386,10 @@ def render(entry, st, hostname, domain, site):
     if st["online"] and show.get("plugins") and st.get("plugins"):
         chips = "".join(f'<span class="chip">{html.escape(p)}</span>' for p in st["plugins"][:200])
         body.append(f'<div class="card"><h2>Plugins ({len(st["plugins"])})</h2><div class="chips">{chips}</div></div>')
-    return PAGE.format(title=f"{name} &middot; Status", body="\n".join(body), domain=html.escape(domain), site=html.escape(site)).encode()
+    return PAGE.format(title=f"{name} &middot; Status", body="\n".join(body), link=html.escape(link), site=html.escape(site)).encode()
 
-def not_found(domain, site):
-  return PAGE.format(title="Not found", domain=html.escape(domain), site=html.escape(site), body=(
+def not_found(link, site):
+  return PAGE.format(title="Not found", link=html.escape(link), site=html.escape(site), body=(
     '<div class="card"><h1>Page not found</h1><p style="color:var(--mute)">There is no status page at this address.</p></div>'
   )).encode()
 
@@ -428,14 +428,14 @@ def make_handler(cfg, feed, checker):
                 return self._send(200, b"ok", "text/plain")
             host = (self.headers.get("Host") or "").split(":")[0].lower()
             if len(host) > 253 or not HOST.match(host):
-                return self._send(404, not_found(cfg["domain"], feed.app_name or cfg["domain"]))
+                return self._send(404, not_found(cfg["panel_url"], feed.app_name or cfg["domain"]))
             entry = feed.get(host)
             site = feed.app_name or cfg["domain"]
             if not entry:
-                return self._send(404, not_found(cfg["domain"], site))
+                return self._send(404, not_found(cfg["panel_url"], site))
             try:
                 st = checker.check(entry, host)
-                self._send(200, render(entry, st, host, cfg["domain"], site))
+                self._send(200, render(entry, st, host, cfg["panel_url"], site))
             except Exception:
                 log.exception("render failed for %s", host)
                 self._send(500, b"error", "text/plain")
