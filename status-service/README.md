@@ -29,7 +29,7 @@ Edit `/etc/livenet-status/config.json`:
 |---|---|
 | `panel_url` | Your panel's URL. |
 | `domain` | The base domain of the status pages. |
-| `nodes` | Maps the node names in the feed to an address this machine can reach, for example `{"wing1": "100.90.48.5"}`. A node missing here is shown offline. |
+| `nodes` | Maps the node names in the feed to an address this machine can reach, for example `{"wing1": "203.0.113.10"}`. A node missing here is shown offline. |
 | `listen_host`, `listen_port` | Where the service listens. Keep `127.0.0.1`. |
 | `feed_ttl`, `status_ttl`, `timeout` | Feed cache, status cache and ping timeout, in seconds. |
 
