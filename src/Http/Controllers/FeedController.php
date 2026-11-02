@@ -36,7 +36,6 @@ class FeedController
             // Deliberately no IPs, owners, emails, UUIDs or tokens.
             return [
                 'subdomain' => $entry->subdomain,
-                'name' => $server->name,
                 'node' => $server->node?->name,
                 'port' => (int) $server->allocation->port,
                 'query_port' => $entry->query_port,

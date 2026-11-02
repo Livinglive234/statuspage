@@ -42,7 +42,6 @@ Header: `Authorization: Bearer <token>`
   "servers": [
     {
       "subdomain": "survival",
-      "name": "Survival",
       "node": "wing1",
       "port": 25565,
       "query_port": null,
@@ -63,7 +62,7 @@ Header: `Authorization: Bearer <token>`
 - `node` is the name of the node the server runs on.
 - `proxy_protocol` is `true` when the server needs a PROXY protocol v2 header before the normal handshake; a status service must send one, or the server will drop the connection. Query is generally not available on such servers.
 - `show` is already resolved (the server's own choice, otherwise the default). A status service must not display anything marked `false`.
-- The feed never includes IP addresses, owners, UUIDs or tokens.
+- The feed never includes IP addresses, owners, UUIDs, tokens or the panel's server names.
 - Responses are `Cache-Control: no-store` and rate limited to 60 requests per minute.
 
 Responses: `200` ok, `401` bad or missing token, `503` no token configured.

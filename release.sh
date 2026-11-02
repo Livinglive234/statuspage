@@ -46,6 +46,12 @@ Built dist/statuspage.zip  (sha256 $SHA)
 Next:
   git add -A && git commit -m "Release v$VERSION"
   git tag v$VERSION && git push && git push --tags
-  Create a GitHub release for tag v$VERSION and upload dist/statuspage.zip to it.
+  Create a GitHub release for tag v$VERSION and upload dist/statuspage.zip to it:
+
+    In the browser:  repo > Releases > Draft a new release > choose tag v$VERSION >
+                     attach dist/statuspage.zip > Publish release
+    Or with the GitHub CLI:
+                     gh release create v$VERSION dist/statuspage.zip --title "v$VERSION" --notes "Release v$VERSION"
+
   (Upload exactly this zip, or the checksum in update.json will not match.)
 MSG
