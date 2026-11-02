@@ -8,5 +8,6 @@
     "namespace": "LiveNet\\StatusPage",
     "class": "StatusPagePlugin",
     "panels": ["admin", "server"],
+    "update_url": "https://raw.githubusercontent.com/Livinglive234/statuspage/main/update.json",
     "api_version": 1
 }
