@@ -19,7 +19,7 @@ PY
 
 # 2. build dist/statuspage.zip with a top-level "statuspage/" folder
 rm -rf dist && mkdir -p dist/build/statuspage
-git ls-files -co --exclude-standard | grep -vE '^(dist/|release\.sh$|update\.json$|\.gitignore$|.*\.zip$)' | while read -r f; do
+git ls-files -co --exclude-standard | grep -vE '^(dist/|status-service/|release\.sh$|update\.json$|\.gitignore$|.*\.zip$)' | while read -r f; do
   mkdir -p "dist/build/statuspage/$(dirname "$f")"
   cp "$f" "dist/build/statuspage/$f"
 done

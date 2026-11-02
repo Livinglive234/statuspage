@@ -9,7 +9,9 @@ This plugin manages which servers have a status page, what each page is allowed 
 1. Open **Settings** on this plugin, click the refresh icon to generate a token, then save. This writes `STATUSPAGE_TOKEN` to `.env` and clears the config cache.
 2. In the same Settings screen, choose what status pages show **by default**: version, player count, player names, MOTD and plugin list.
 3. Give servers a public address. If the **Subdomains** plugin is installed and enabled, every server with a subdomain created there gets a status page automatically, and renaming the subdomain updates the page with no extra step. You can also add a manual entry under **Status Pages** in the admin sidebar to give a server an extra address (or an address when Subdomains isn't installed).
-4. Give the same token to your status service.
+4. Give the same token to your status service. Install steps, including the reverse-proxy setup for nginx, Apache and Caddy, are in the [status service README](https://github.com/Livinglive234/statuspage/blob/main/status-service/README.md).
+
+**Limitation:** Subdomains-plugin domains that use a prefix (for example `name.mc.example.com`) are not supported. Those addresses have two labels before the base domain, and a standard wildcard certificate (`*.example.com`) only covers one, so their status pages won't work over HTTPS.
 
 If no token is set, the feed is disabled and returns 503.
 

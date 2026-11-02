@@ -1,0 +1,12 @@
+{
+  "panel_url": "https://panel.example.com",
+  "domain": "example.com",
+  "nodes": {
+    "wing1": "100.90.48.5"
+  },
+  "listen_host": "127.0.0.1",
+  "listen_port": 8081,
+  "feed_ttl": 30,
+  "status_ttl": 15,
+  "timeout": 3
+}

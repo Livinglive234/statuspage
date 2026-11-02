@@ -1,0 +1,18 @@
+# /etc/caddy/Caddyfile  (add this block next to your panel's block)
+# Replace example.com with your domain.
+#
+# Caddy picks the most specific site address, so panel.example.com
+# keeps working next to this wildcard.
+#
+# This uses a certificate you already have. If you would rather let Caddy
+# get the wildcard certificate itself, you need a Caddy build with your DNS
+# provider's plugin, then replace the tls line with:
+#     tls { dns cloudflare {env.CF_API_TOKEN} }
+
+*.example.com {
+    tls /etc/letsencrypt/live/statuspage-wildcard/fullchain.pem /etc/letsencrypt/live/statuspage-wildcard/privkey.pem
+    reverse_proxy 127.0.0.1:8081 {
+        header_up Host {host}
+        header_up X-Forwarded-For {remote_host}
+    }
+}
