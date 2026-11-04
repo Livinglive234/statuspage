@@ -19,6 +19,7 @@ use LiveNet\StatusPage\Filament\Admin\Resources\StatusPages\Pages\CreateStatusPa
 use LiveNet\StatusPage\Filament\Admin\Resources\StatusPages\Pages\EditStatusPage;
 use LiveNet\StatusPage\Filament\Admin\Resources\StatusPages\Pages\ListStatusPages;
 use LiveNet\StatusPage\Models\StatusPage;
+use LiveNet\StatusPage\Support\Hostnames;
 
 class StatusPageResource extends Resource
 {
@@ -38,6 +39,15 @@ class StatusPageResource extends Resource
         $user = auth()->user();
 
         return $user && method_exists($user, 'isRootAdmin') && $user->isRootAdmin();
+    }
+
+    /** @return array<int, string> public addresses of a record's server (looked up once per request) */
+    private static function hostnamesFor(StatusPage $record): array
+    {
+        static $all = null;
+        $all ??= Hostnames::all();
+
+        return $all[$record->server_id] ?? [];
     }
 
     public static function form(Schema $schema): Schema
@@ -89,9 +99,12 @@ class StatusPageResource extends Resource
                     ->label('Server')
                     ->searchable(),
                 TextColumn::make('subdomain')
+                    ->label('Addresses')
                     ->searchable()
-                    ->formatStateUsing(fn (?string $state) => $state ? $state . '.' . config('statuspage.domain', 'livenet.host') : '—')
-                    ->url(fn (StatusPage $record) => $record->subdomain ? 'https://' . $record->subdomain . '.' . config('statuspage.domain', 'livenet.host') : null)
+                    ->state(fn (StatusPage $record) => self::hostnamesFor($record) ?? [])
+                    ->listWithLineBreaks()
+                    ->placeholder('—')
+                    ->url(fn (StatusPage $record) => ($h = (self::hostnamesFor($record)[0] ?? null)) ? 'https://' . $h : null)
                     ->openUrlInNewTab(),
                 TextColumn::make('edition')
                     ->badge()
