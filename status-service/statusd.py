@@ -151,6 +151,31 @@ def server_list_ping(host, port, timeout, proxy_protocol=False, server_name=None
         shift += 7
     return json.loads(body[i:i + n].decode("utf-8", "replace"))
 
+RAKNET_MAGIC = bytes.fromhex("00ffff00fefefefefdfdfdfd12345678")
+
+def bedrock_ping(host, port, timeout):
+    """RakNet unconnected ping (UDP) as sent by the Bedrock server list. Returns the parsed pong."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.settimeout(timeout)
+        s.connect((host, port))
+        s.send(b"\x01" + struct.pack(">q", int(time.time() * 1000) & 0x7FFFFFFFFFFFFFFF)
+               + RAKNET_MAGIC + struct.pack(">q", 0x4C6976654E657421))
+        resp = s.recv(4096)
+    # 0x1c, time(8), server guid(8), magic(16), uint16 length, string
+    if len(resp) < 35 or resp[0] != 0x1C or resp[17:33] != RAKNET_MAGIC:
+        raise ValueError("not a RakNet pong")
+    n = struct.unpack(">H", resp[33:35])[0]
+    f = resp[35:35 + n].decode("utf-8", "replace").split(";")
+    if len(f) < 6 or f[0] not in ("MCPE", "MCEE"):
+        raise ValueError("unexpected pong")
+    def num(i):
+        try:
+            return int(f[i])
+        except (IndexError, ValueError):
+            return 0
+    return {"motd": f[1], "protocol": num(2), "version": f[3], "online": num(4), "max": num(5),
+            "level": f[7] if len(f) > 7 else "", "gamemode": f[8] if len(f) > 8 else ""}
+
 def query(host, port, timeout):
     """Full-stat Query. Returns dict with players (list) and plugins (list), or raises."""
     sid = 0x01020304 & 0x0F0F0F0F
@@ -266,6 +291,23 @@ class Checker:
             return {"online": False}
         t = self.cfg["timeout"]
         port = int(entry["port"])
+        if entry.get("edition") == "bedrock":
+            try:
+                b = bedrock_ping(ip, int(entry.get("query_port") or port), t)
+            except Exception as e:
+                log.info("%s offline (bedrock): %s", hostname, e)
+                return {"online": False}
+            return {
+                "online": True,
+                "version": ("Bedrock " + b["version"]).strip(),
+                "online_players": b["online"],
+                "max_players": b["max"],
+                "sample": [],
+                "motd": b["motd"],
+                "favicon": "",
+                "player_names": None,   # Bedrock does not expose these
+                "plugins": None,
+            }
         try:
             proxied = bool(entry.get("proxy_protocol"))
             st = server_list_ping(ip, port, t, proxy_protocol=proxied,

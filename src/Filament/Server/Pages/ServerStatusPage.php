@@ -5,6 +5,7 @@ namespace LiveNet\StatusPage\Filament\Server\Pages;
 use App\Models\Server;
 use BackedEnum;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
@@ -92,6 +93,15 @@ class ServerStatusPage extends Page
                     ->description('Choose what visitors see on your public status page. Changes save automatically. "Use default" follows the panel-wide setting.')
                     ->schema([
                         ...VisibilityFields::make(autoSave: true),
+                        Select::make('edition')
+                            ->label('Minecraft edition')
+                            ->options(StatusPage::EDITIONS)
+                            ->default('java')
+                            ->native(false)
+                            ->selectablePlaceholder(false)
+                            ->helperText('Bedrock servers cannot show player names or plugins.')
+                            ->live()
+                            ->afterStateUpdated(fn ($livewire) => $livewire->save()),
                         Toggle::make('proxy_protocol')
                             ->label('Server is behind a proxy (PROXY protocol)')
                             ->helperText('Turn on if this server sits behind a proxy such as Velocity with haproxy-protocol enabled. Leave off for normal servers. If the page shows Offline while the server is up, try switching this.')
@@ -144,7 +154,7 @@ class ServerStatusPage extends Page
         // Owners can only change visibility, the proxy and enabled switches, never the subdomain or ports.
         $entry = StatusPage::firstOrNew(['server_id' => $server->id]);
         $entry->fill(collect($data)->only([
-            'show_version', 'show_players', 'show_player_names', 'show_motd', 'show_plugins', 'proxy_protocol', 'enabled',
+            'show_version', 'show_players', 'show_player_names', 'show_motd', 'show_plugins', 'proxy_protocol', 'edition', 'enabled',
         ])->all());
         $entry->save();
 

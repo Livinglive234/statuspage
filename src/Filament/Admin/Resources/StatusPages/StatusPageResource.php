@@ -57,11 +57,17 @@ class StatusPageResource extends Resource
                 ->unique(ignoreRecord: true)
                 ->suffix('.' . config('statuspage.domain', 'livenet.host'))
                 ->helperText('Optional extra address. Servers with a subdomain from the Subdomains plugin get a status page automatically; leave this empty to use only those. Lowercase letters, numbers and hyphens only.'),
+            Select::make('edition')
+                ->options(StatusPage::EDITIONS)
+                ->default('java')
+                ->required()
+                ->native(false)
+                ->helperText('Bedrock servers are pinged over UDP on the primary allocation port. Bedrock does not expose player names or plugins.'),
             TextInput::make('query_port')
                 ->numeric()
                 ->minValue(1)
                 ->maxValue(65535)
-                ->helperText('Leave empty to use the primary allocation port.'),
+                ->helperText('Java: Query port. Bedrock: UDP port to ping if it differs from the primary allocation. Leave empty to use the primary allocation port.'),
             Toggle::make('proxy_protocol')
                 ->label('Server uses PROXY protocol')
                 ->helperText('Turn on for servers that require the HAProxy/PROXY protocol header, such as Velocity with haproxy-protocol enabled. Leave off for normal servers.')
@@ -87,6 +93,9 @@ class StatusPageResource extends Resource
                     ->formatStateUsing(fn (?string $state) => $state ? $state . '.' . config('statuspage.domain', 'livenet.host') : '—')
                     ->url(fn (StatusPage $record) => $record->subdomain ? 'https://' . $record->subdomain . '.' . config('statuspage.domain', 'livenet.host') : null)
                     ->openUrlInNewTab(),
+                TextColumn::make('edition')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state) => $state === 'bedrock' ? 'Bedrock' : 'Java'),
                 IconColumn::make('enabled')->boolean(),
             ])
             ->recordActions([

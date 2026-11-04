@@ -48,6 +48,7 @@ class FeedController
                 'hostnames' => $hostnames[$id],
                 'node' => $server->node?->name,
                 'port' => (int) $server->allocation->port,
+                'edition' => $entry->resolvedEdition(),
                 'query_port' => $entry->query_port,
                 'proxy_protocol' => (bool) $entry->proxy_protocol,
                 'show' => $entry->resolvedVisibility(),
