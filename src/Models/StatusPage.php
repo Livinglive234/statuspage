@@ -38,8 +38,9 @@ class StatusPage extends Model
     ];
 
     public const EDITIONS = [
-        'java' => 'Minecraft: Java Edition',
-        'bedrock' => 'Minecraft: Bedrock Edition',
+        'java' => 'Java',
+        'bedrock' => 'Bedrock (modern)',
+        'bedrock_legacy' => 'Bedrock Legacy (<1.21.60 / 26.60)',
     ];
 
     /** Always one of the known editions; anything else (including null) is treated as Java. */
