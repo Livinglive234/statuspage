@@ -117,7 +117,7 @@ Expect `HTTP/2 200` (or `HTTP/1.1 200`). A hostname with no status page returns 
 ## Notes
 
 - **Velocity / BungeeCord behind PROXY protocol:** tick the PROXY protocol option on the status page entry in the panel so the service sends a PROXY v2 header when pinging.
-- **Bedrock servers:** choose *Bedrock (modern)* for current versions (NetherNet): the service sends an unauthenticated `GET /v1/join` over TCP to the allocation port (or the entry's query port) and shows MOTD, version and player count. That TCP port must be reachable from the status host (Pelican normally publishes it). If it is not, the page falls back to Online/Offline from the state the panel reports. Choose *Bedrock Legacy* for servers before 1.21.60 / 26.60: a RakNet ping over UDP. Neither has a player list, plugin list or icon, nor PROXY protocol.
+- **Bedrock servers:** choose *Bedrock (modern)* for current versions (NetherNet): the service sends an unauthenticated `GET /v1/join` over TCP to the allocation port (or the entry's query port) and shows MOTD, version and player count. That TCP port must be reachable from the status host (Pelican normally publishes it); otherwise the page shows Offline. Choose *Bedrock Legacy* for servers before 1.21.60 / 26.60: a RakNet ping over UDP. Neither has a player list, plugin list or icon, nor PROXY protocol.
 - **Player names and plugins** need `enable-query=true` on the Minecraft server.
 - **Offline everywhere?** Check that `nodes` maps each node name and that this machine can reach the server ports.
 - **Security:** the service never shows IPs, owners or tokens, escapes everything it displays, and sends strict CSP headers. Keep `listen_host` on `127.0.0.1` so only your reverse proxy can reach it.

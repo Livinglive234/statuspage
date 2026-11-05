@@ -72,7 +72,7 @@ class StatusPageResource extends Resource
                 ->default('java')
                 ->required()
                 ->native(false)
-                ->helperText('Bedrock (modern, NetherNet) is checked over HTTP on the TCP port, falling back to the panel's state (Online/Offline only) if that is unreachable. Bedrock Legacy (before 1.21.60) is pinged over UDP. Both show MOTD, version and player count; neither shows player names or plugins.'),
+                ->helperText('Bedrock (modern, NetherNet) is checked over HTTP on the TCP port. Bedrock Legacy (before 1.21.60) is pinged over UDP. Both show MOTD, version and player count; neither shows player names or plugins.'),
             TextInput::make('query_port')
                 ->numeric()
                 ->minValue(1)

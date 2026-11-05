@@ -43,26 +43,12 @@ class FeedController
                 return null;
             }
 
-            $edition = $entry->resolvedEdition();
-
-            // Modern Bedrock (NetherNet) has no ping a status service can send, so the panel reports
-            // the server's state instead. retrieveStatus() is cached for 15 seconds.
-            $state = null;
-            if ($edition === 'bedrock') {
-                try {
-                    $state = $server->retrieveStatus()->value;
-                } catch (\Throwable) {
-                    $state = 'missing';
-                }
-            }
-
             // Deliberately no IPs, owners, emails, UUIDs, tokens or server names.
             return [
                 'hostnames' => $hostnames[$id],
                 'node' => $server->node?->name,
                 'port' => (int) $server->allocation->port,
-                'edition' => $edition,
-                'state' => $state,
+                'edition' => $entry->resolvedEdition(),
                 'query_port' => $entry->query_port,
                 'proxy_protocol' => (bool) $entry->proxy_protocol,
                 'show' => $entry->resolvedVisibility(),

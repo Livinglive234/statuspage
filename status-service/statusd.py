@@ -301,26 +301,23 @@ class Checker:
         t = self.cfg["timeout"]
         port = int(entry["port"])
         if entry.get("edition") == "bedrock":
-            # Modern Bedrock (NetherNet): HTTP status over TCP; if that is unreachable, trust the panel's state
+            # Modern Bedrock (NetherNet): unauthenticated HTTP status over TCP
             try:
                 b = bedrock_http_status(ip, int(entry.get("query_port") or port), t)
-                return {
-                    "online": True,
-                    "version": ("Bedrock " + str(b.get("version", ""))).strip(),
-                    "online_players": int(b.get("players", 0) or 0),
-                    "max_players": int(b.get("maxPlayers", 0) or 0),
-                    "sample": [],
-                    "motd": str(b.get("name", "")),
-                    "favicon": "",
-                    "player_names": None,
-                    "plugins": None,
-                }
             except Exception as e:
-                log.info("%s bedrock http status failed, using panel state (%s): %s",
-                         hostname, entry.get("state"), e)
-            return {"online": entry.get("state") == "running", "basic": True,
-                    "version": "", "online_players": 0, "max_players": 0, "sample": [],
-                    "motd": "", "favicon": "", "player_names": None, "plugins": None}
+                log.info("%s offline (bedrock http): %s", hostname, e)
+                return {"online": False}
+            return {
+                "online": True,
+                "version": ("Bedrock " + str(b.get("version", ""))).strip(),
+                "online_players": int(b.get("players", 0) or 0),
+                "max_players": int(b.get("maxPlayers", 0) or 0),
+                "sample": [],
+                "motd": str(b.get("name", "")),
+                "favicon": "",
+                "player_names": None,
+                "plugins": None,
+            }
         if entry.get("edition") == "bedrock_legacy":
             try:
                 b = bedrock_ping(ip, int(entry.get("query_port") or port), t)
@@ -423,8 +420,6 @@ FAVICON = re.compile(r"^data:image/png;base64,[A-Za-z0-9+/=]+$")
 
 def render(entry, st, hostname, link, site):
     show = entry.get("show", {})
-    if st.get("basic"):  # state only: nothing else is known about the server
-        show = {}
     # The page is headed by its public address, not the panel's server name
     name = html.escape(hostname)
     icon = ""
