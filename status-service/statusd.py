@@ -176,6 +176,15 @@ def bedrock_ping(host, port, timeout):
     return {"motd": f[1], "protocol": num(2), "version": f[3], "online": num(4), "max": num(5),
             "level": f[7] if len(f) > 7 else "", "gamemode": f[8] if len(f) > 8 else ""}
 
+def bedrock_http_status(host, port, timeout):
+    """Modern Bedrock (NetherNet): unauthenticated GET /v1/join over TCP returns the server's basic status."""
+    req = urllib.request.Request(f"http://{host}:{port}/v1/join", headers={"User-Agent": "livenet-status/1.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        data = json.loads(r.read(65536).decode("utf-8", "replace"))
+    if not isinstance(data, dict) or "players" not in data:
+        raise ValueError("unexpected response")
+    return data
+
 def query(host, port, timeout):
     """Full-stat Query. Returns dict with players (list) and plugins (list), or raises."""
     sid = 0x01020304 & 0x0F0F0F0F
@@ -292,7 +301,23 @@ class Checker:
         t = self.cfg["timeout"]
         port = int(entry["port"])
         if entry.get("edition") == "bedrock":
-            # Modern Bedrock (NetherNet) cannot be pinged: trust the state the panel reports
+            # Modern Bedrock (NetherNet): HTTP status over TCP; if that is unreachable, trust the panel's state
+            try:
+                b = bedrock_http_status(ip, int(entry.get("query_port") or port), t)
+                return {
+                    "online": True,
+                    "version": ("Bedrock " + str(b.get("version", ""))).strip(),
+                    "online_players": int(b.get("players", 0) or 0),
+                    "max_players": int(b.get("maxPlayers", 0) or 0),
+                    "sample": [],
+                    "motd": str(b.get("name", "")),
+                    "favicon": "",
+                    "player_names": None,
+                    "plugins": None,
+                }
+            except Exception as e:
+                log.info("%s bedrock http status failed, using panel state (%s): %s",
+                         hostname, entry.get("state"), e)
             return {"online": entry.get("state") == "running", "basic": True,
                     "version": "", "online_players": 0, "max_players": 0, "sample": [],
                     "motd": "", "favicon": "", "player_names": None, "plugins": None}

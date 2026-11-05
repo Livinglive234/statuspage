@@ -99,7 +99,7 @@ class ServerStatusPage extends Page
                             ->default('java')
                             ->native(false)
                             ->selectablePlaceholder(false)
-                            ->helperText('Bedrock (modern) pages only show Online/Offline. Bedrock Legacy (before 1.21.60) also shows MOTD, version and players. Bedrock cannot show player names or plugins.')
+                            ->helperText('Bedrock pages show MOTD, version and player count, but never player names or plugins. If modern Bedrock's HTTP status is unreachable, the page falls back to Online/Offline.')
                             ->live()
                             ->afterStateUpdated(fn ($livewire) => $livewire->save()),
                         Toggle::make('proxy_protocol')

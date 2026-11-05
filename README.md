@@ -33,7 +33,7 @@ If no token is set, the feed is disabled and returns 503.
 | Server | The server to publish. One entry per server. |
 | Subdomain | Optional. An extra address under your base domain. Lowercase letters, numbers and hyphens. Must be unique and not reserved (www, panel, api, mail, ssh and similar). |
 | Query port | Query port of the server. Empty means the primary allocation port. |
-| Edition | Java (default), Bedrock (modern) or Bedrock Legacy (before 1.21.60 / 26.60). Modern Bedrock uses NetherNet, which cannot be pinged, so its page shows only Online/Offline from the panel. Legacy Bedrock is pinged over UDP (RakNet) and shows MOTD, version and player count; there, Query port is the UDP port to ping if it differs from the primary allocation. Owners can change this too. |
+| Edition | Java (default), Bedrock (modern) or Bedrock Legacy (before 1.21.60 / 26.60). Modern Bedrock (NetherNet) is checked with an unauthenticated HTTP request to the server's TCP port (needs that TCP port reachable from the status service); if unreachable, the page falls back to Online/Offline from the panel. Legacy Bedrock is pinged over UDP (RakNet). Both show MOTD, version and player count; Query port is the port to check if it differs from the primary allocation. Owners can change this too. |
 | Server uses PROXY protocol | For proxies like Velocity with `haproxy-protocol` enabled, which reject connections without the header. Leave off for normal servers. Owners can also change this on their server's Status Page. |
 | What the page shows | Per aspect: Use default, Show or Hide. "Use default" follows the plugin Settings. |
 | Enabled | Turn the page off without deleting the entry. |
@@ -74,7 +74,7 @@ Header: `Authorization: Bearer <token>`
 - `hostnames` are the public addresses of the server (manual subdomain plus Subdomains-plugin addresses under the configured base domain). One server can have several.
 - `app_name` is the panel's App Name, which the status service shows in its page footer.
 - `port` is the server's primary allocation port.
-- `edition` is `java`, `bedrock` (modern, NetherNet) or `bedrock_legacy` (RakNet). For `bedrock` the feed also carries `state` (the panel's container state, e.g. `running`) because such servers cannot be pinged. Older services ignore the fields and treat every server as Java.
+- `edition` is `java`, `bedrock` (modern, NetherNet) or `bedrock_legacy` (RakNet). For `bedrock` the feed also carries `state` (the panel's container state, e.g. `running`), used as a fallback when the server's HTTP status is unreachable. Older services ignore the fields and treat every server as Java.
 - `node` is the name of the node the server runs on.
 - `proxy_protocol` is `true` when the server needs a PROXY protocol v2 header before the normal handshake; a status service must send one, or the server will drop the connection. Query is generally not available on such servers.
 - `show` is already resolved (the server's own choice, otherwise the default). A status service must not display anything marked `false`.

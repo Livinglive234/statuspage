@@ -72,12 +72,12 @@ class StatusPageResource extends Resource
                 ->default('java')
                 ->required()
                 ->native(false)
-                ->helperText('Bedrock (modern) uses NetherNet, which cannot be pinged, so the page only shows Online/Offline from the panel. Bedrock Legacy (before 1.21.60) is pinged over UDP and shows MOTD, version and player count. Neither shows player names or plugins.'),
+                ->helperText('Bedrock (modern, NetherNet) is checked over HTTP on the TCP port, falling back to the panel's state (Online/Offline only) if that is unreachable. Bedrock Legacy (before 1.21.60) is pinged over UDP. Both show MOTD, version and player count; neither shows player names or plugins.'),
             TextInput::make('query_port')
                 ->numeric()
                 ->minValue(1)
                 ->maxValue(65535)
-                ->helperText('Java: Query port. Bedrock Legacy: UDP port to ping if it differs from the primary allocation. Leave empty to use the primary allocation port.'),
+                ->helperText('Java: Query port. Bedrock: port to check if it differs from the primary allocation. Leave empty to use the primary allocation port.'),
             Toggle::make('proxy_protocol')
                 ->label('Server uses PROXY protocol')
                 ->helperText('Turn on for servers that require the HAProxy/PROXY protocol header, such as Velocity with haproxy-protocol enabled. Leave off for normal servers.')
